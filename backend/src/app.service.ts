@@ -4,12 +4,12 @@ import { createPublicClient, createWalletClient, http, formatEther } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts';
 import * as chains from 'viem/chains';
 import * as tokenJson from './assets/MyToken.json';
-import * as dotenv from "dotenv";
+import * as dotenv from "dotenv"; // NestJS config mode used instead
 
-dotenv.config();
+dotenv.config(); // NestJS config mode used instead
 
 // Environment Variables
-const infuraApiKey = process.env.INFURA_API_KEY || "";
+const infuraApiKey = process.env.INFURA_API_KEY || ""; // NestJS config mode used instead
 
 // Injectable decorator to allow dependency injection
 @Injectable()
