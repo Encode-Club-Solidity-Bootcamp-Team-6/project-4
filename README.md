@@ -13,9 +13,9 @@ Code repo for week 4 group project
 
 ## NestJS config mode (backend)
 
-This code uses the NestJS config mode to load e.g. RPC URL and PRIVATE KEY. Explanations for this mode see: https://github.com/Encode-Club-Solidity-Bootcamp/Lesson-15?tab=readme-ov-file#using-nestjs-configurations-module
+This code uses the NestJS config mode to load e.g. EndpointRpcUrl and PRIVATE KEY. Explanations for this mode see: https://github.com/Encode-Club-Solidity-Bootcamp/Lesson-15?tab=readme-ov-file#using-nestjs-configurations-module
 
-The code combines RPC URL and API form .env file to RpcEndpointUrl (see backend > app.service.ts). The classical load form env w/ dotenv is still in the code though.
+The code combines RPC URL and API KEY from .env file for Infura (in this case) to RpcEndpointUrl (see backend > app.service.ts). The classical load form env w/ dotenv is still in the code though.
 
 
 Syntax info for RpcEndpointUrl from env:
