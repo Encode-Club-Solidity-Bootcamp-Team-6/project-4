@@ -1,6 +1,14 @@
 # project-4
 Code repo for week 4 group project
 
+Added Dockerfile and devcontainer.
+After reopening in devcontainer, do `npm install` in /backend
+
+In /frontend, do:
+```
+yarn add --dev husky
+yarn install
+```
 
 ## backend
 
