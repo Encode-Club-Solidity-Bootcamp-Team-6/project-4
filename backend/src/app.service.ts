@@ -10,7 +10,7 @@ import {
 import * as chains from 'viem/chains';
 import * as tokenJson from './assets/MyToken.json';
 
-dotenv.config(); 
+dotenv.config();
 
 // Environment Variables
 const infuraApiKey = process.env.INFURA_API_KEY || ''; // NestJS config mode used instead
@@ -28,14 +28,12 @@ export class AppService {
     this.setupWalletClient();
     const network = this.configService.get<string>('INFURA_RPC_URL');
     const apiKey = this.configService.get<string>('INFURA_API_KEY');
-    console.log('network--------', network);
     this.rpcEndpointUrl = `${network}${apiKey}`;
   }
 
   private setupWalletClient() {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
     if (!privateKey) {
-      console.log('test-----------------------');
       throw new Error('Private key not found in configuration.');
     }
     // Ensure the privateKey has the '0x' prefix

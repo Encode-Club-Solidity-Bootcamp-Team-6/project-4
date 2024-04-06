@@ -1,57 +1,121 @@
 "use client";
 
-import Link from "next/link";
+import { ReactNode, useEffect, useState } from "react";
 import type { NextPage } from "next";
-import { useAccount, useNetwork, useSignMessage, useBalance, useContractRead } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
-import { useState, useEffect } from "react";
-
+import { useAccount, useBalance, useContractRead, useNetwork, useSignMessage } from "wagmi";
+import { Address, AddressInput } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
+  const [contractAddresses, setContractAddresses] = useState<ContractAddresses>({
+    ballot: "0x91F5E2C2eFA52Aa7a95EfAA0916B7ab6dfA67b88",
+    myToken: "0x80DC6B175D08af1d2F11F8396a845267d60eB68a",
+  });
+
   return (
     <>
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
           <h1 className="text-center mb-8">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
+            <span className="block text-4xl font-bold">Tokenized Ballot</span>
           </h1>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/pages/index.tsx
-            </code>
-          </p>
-          <PageBody></PageBody>
+          <ExampleAddresses />
+          <ContractAddresses value={contractAddresses} onChange={setContractAddresses}></ContractAddresses>
+          <InfoSection address={contractAddresses.myToken} />
         </div>
+        <WalletInfo></WalletInfo>
       </div>
     </>
   );
 };
 
-function PageBody() {
+const Card: React.FC<{ children: ReactNode; title: string }> = ({ children, title }) => {
   return (
-    <>
-      <p className="text-center text-lg">Here we are!</p>
-      <WalletInfo></WalletInfo>
-      <RandomWord></RandomWord>
-      
-    </>
+    <div className="card w-96 bg-primary text-primary-content mt-4">
+      <div className="card-body">
+        <h2 className="card-title">{title}</h2>
+        {children}
+      </div>
+    </div>
   );
-}
+};
+
+const ExampleAddresses: React.FC = () => {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex gap-2 items-center">
+        <span className="label-text">MyToken Example: </span>
+        <Address size="xs" address="0x80DC6B175D08af1d2F11F8396a845267d60eB68a" format="short" />
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <span className="label-text">Ballot Example: </span>
+        <Address size="xs" address="0x91F5E2C2eFA52Aa7a95EfAA0916B7ab6dfA67b88" format="short" />
+      </div>
+    </div>
+  );
+};
+
+type ContractAddresses = {
+  myToken: string;
+  ballot: string;
+};
+
+const ContractAddresses: React.FC<{ value: ContractAddresses; onChange: (val: ContractAddresses) => void }> = ({
+  value,
+  onChange,
+}) => {
+  return (
+    <Card title="Contract Addresses">
+      <div className="form-control w-full max-w-xs ">
+        <label className="label">
+          <span className="label-text">MyToken</span>
+        </label>
+
+        <AddressInput
+          onChange={newVal => onChange({ ...value, myToken: newVal })}
+          value={value.myToken}
+          placeholder="MyToken Address"
+        />
+
+        <label className="label pt-5">
+          <span className="label-text">Ballot</span>
+        </label>
+        <AddressInput
+          onChange={newVal => onChange({ ...value, ballot: newVal })}
+          value={value.ballot}
+          placeholder="Ballot Address"
+        />
+      </div>
+    </Card>
+  );
+};
+
+const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) => {
+  // read Voting Power
+  // read winning proposal
+  return <Card title="Info">Info</Card>;
+};
+
+const InteractionSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) => {
+  // add deploy MyToken
+  // add deploy Ballot
+  // add delegate
+  // add mint token
+  // add vote
+
+  return <Card title="Interaction">Soon you can interact here</Card>;
+};
+
 function WalletInfo() {
   const { address, isConnecting, isDisconnected } = useAccount();
   const { chain } = useNetwork();
   if (address)
     return (
       <div>
-        <p>Your account address is {address}</p>
-        <p>Connected to the network {chain?.name}</p>
-        <WalletAction></WalletAction>
-        <WalletBalance address={address as `0x${string}`}></WalletBalance>
-        <TokenInfo address={address as `0x${string}`}></TokenInfo>
-        <ApiData address={address as `0x${string}`}></ApiData>
+        {/* <WalletAction></WalletAction> */}
+        {/* <WalletBalance address={address as `0x${string}`}></WalletBalance> */}
+        {/* <TokenInfo address={address as `0x${string}`}></TokenInfo> */}
+        {/* <ApiData address={address as `0x${string}`}></ApiData> */}
       </div>
     );
   if (isConnecting)
@@ -72,6 +136,7 @@ function WalletInfo() {
     </div>
   );
 }
+
 function WalletAction() {
   const [signatureMessage, setSignatureMessage] = useState("");
   const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage();
@@ -125,6 +190,7 @@ function WalletBalance(params: { address: `0x${string}` }) {
     </div>
   );
 }
+
 function TokenInfo(params: { address: `0x${string}` }) {
   return (
     <div className="card w-96 bg-primary text-primary-content mt-4">
@@ -201,35 +267,6 @@ function TokenBalance(params: { address: `0x${string}` }) {
   return <div>Balance: {balance}</div>;
 }
 
-function RandomWord() {
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("https://randomuser.me/api/")
-      .then(res => res.json())
-      .then(data => {
-        setData(data.results[0]);
-        setLoading(false);
-      });
-  }, []);
-
-  if (isLoading) return <p>Loading...</p>;
-  if (!data) return <p>No profile data</p>;
-
-  return (
-    <div className="card w-96 bg-primary text-primary-content mt-4">
-      <div className="card-body">
-        <h2 className="card-title">Testing useState and useEffect from React library</h2>
-        <h1>
-          Name: {data.name.title} {data.name.first} {data.name.last}
-        </h1>
-        <p>Email: {data.email}</p>
-      </div>
-    </div>
-  );
-}
-
 function ApiData(params: { address: `0x${string}` }) {
   return (
     <div className="card w-96 bg-primary text-primary-content mt-4">
@@ -242,15 +279,14 @@ function ApiData(params: { address: `0x${string}` }) {
   );
 }
 
-
 function TokenAddressFromApi() {
   const [data, setData] = useState<{ result: string }>();
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("http://localhost:3001/contract-address")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setData(data);
         setLoading(false);
       });
@@ -284,8 +320,8 @@ function RequestTokens(params: { address: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
           })
-            .then((res) => res.json())
-            .then((data) => {
+            .then(res => res.json())
+            .then(data => {
               setData(data);
               setLoading(false);
             });
@@ -297,7 +333,7 @@ function RequestTokens(params: { address: string }) {
 
   return (
     <div>
-      <p>Result from API: {data.result ? 'worked' : 'failed'}</p>
+      <p>Result from API: {data.result ? "worked" : "failed"}</p>
     </div>
   );
 }
