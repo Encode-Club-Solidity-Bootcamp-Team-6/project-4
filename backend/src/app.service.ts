@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createPublicClient, createWalletClient, http, formatEther } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import * as dotenv from 'dotenv'; // NestJS config mode used instead
+import {
+  createPublicClient,
+  createWalletClient,
+  formatEther,
+  http,
+} from 'viem';
 import * as chains from 'viem/chains';
 import * as tokenJson from './assets/MyToken.json';
-import * as dotenv from "dotenv"; // NestJS config mode used instead
 
-dotenv.config(); // NestJS config mode used instead
+dotenv.config(); 
 
 // Environment Variables
-const infuraApiKey = process.env.INFURA_API_KEY || ""; // NestJS config mode used instead
+const infuraApiKey = process.env.INFURA_API_KEY || ''; // NestJS config mode used instead
 
 // Injectable decorator to allow dependency injection
 @Injectable()
@@ -24,38 +28,35 @@ export class AppService {
     this.setupWalletClient();
     const network = this.configService.get<string>('INFURA_RPC_URL');
     const apiKey = this.configService.get<string>('INFURA_API_KEY');
+    console.log('network--------', network);
     this.rpcEndpointUrl = `${network}${apiKey}`;
   }
 
-
   private setupWalletClient() {
-  const privateKey = this.configService.get<string>('PRIVATE_KEY');
-  if (!privateKey) {
-    throw new Error('Private key not found in configuration.');
-  }
-  // Ensure the privateKey has the '0x' prefix
-  /*if (!privateKey.startsWith('0x')) {
+    const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    if (!privateKey) {
+      console.log('test-----------------------');
+      throw new Error('Private key not found in configuration.');
+    }
+    // Ensure the privateKey has the '0x' prefix
+    /*if (!privateKey.startsWith('0x')) {
     throw new Error('Invalid private key format. The private key must start with 0x.');
   }
   */
-  
-  this.walletClient = createWalletClient({
-    chain: chains.sepolia,
-    transport: http(),
-    key: privateKey, // Correctly pass the privateKey here.
-  });
-}
 
-private setupPublicClient() {
+    this.walletClient = createWalletClient({
+      chain: chains.sepolia,
+      transport: http(),
+      key: privateKey, // Correctly pass the privateKey here.
+    });
+  }
 
-  this.publicClient = createPublicClient({
-    chain: chains.sepolia,
-    transport: http(this.rpcEndpointUrl),
-  });
-  
-}
-
-  
+  private setupPublicClient() {
+    this.publicClient = createPublicClient({
+      chain: chains.sepolia,
+      transport: http(this.rpcEndpointUrl),
+    });
+  }
 
   // Function to get the total supply of the token
   async getTotalSupply(): Promise<any> {
@@ -66,11 +67,10 @@ private setupPublicClient() {
     const getTotalSupply = await publicClient.readContract({
       address: this.getContractAddress() as `0x${string}`,
       abi: tokenJson.abi,
-      functionName: "totalSupply"
+      functionName: 'totalSupply',
     });
     return formatEther(getTotalSupply as bigint);
   }
-
 
   // Function to get the token balance of an address
   async getTokenBalance(address: string): Promise<string> {
@@ -78,7 +78,7 @@ private setupPublicClient() {
       const balance = await this.publicClient.readContract({
         address: this.getContractAddress() as `0x${string}`,
         abi: tokenJson.abi,
-        functionName: "balanceOf",
+        functionName: 'balanceOf',
         args: [address], // Address whose balance we want to query
       });
       return formatEther(balance); // Convert balance from wei to ether (adjust based on your token's decimals if not 18)
@@ -88,12 +88,11 @@ private setupPublicClient() {
     }
   }
 
-
   // Function to get the transaction receipt
   async getTransactionReceipt(hash: string): Promise<any> {
     try {
       const receipt = await this.publicClient.getTransactionReceipt({
-        hash: hash // Use the hash parameter passed to the function
+        hash: hash, // Use the hash parameter passed to the function
       });
 
       if (!receipt) {
@@ -122,7 +121,6 @@ private setupPublicClient() {
     return obj;
   }
 
-
   // Function to get the hello message
   getHello(): string {
     return 'Hello World!';
@@ -142,11 +140,10 @@ private setupPublicClient() {
     const name = await publicClient.readContract({
       address: this.getContractAddress() as `0x${string}`,
       abi: tokenJson.abi,
-      functionName: "name"
+      functionName: 'name',
     });
     return name;
   }
-
 
   async getServerWalletAddress() {
     const [address] = await this.walletClient.getAddresses();
@@ -159,8 +156,8 @@ private setupPublicClient() {
   }
 
   // Empty mint tokens function
-  mintTokens(address: any) { // ähnlich Castvote von project 2 (write contract funciton)
+  mintTokens(address: any) {
+    // ähnlich Castvote von project 2 (write contract funciton)
     return `Minted tokens for address: ${address}`;
   }
-
 }
