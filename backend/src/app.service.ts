@@ -7,7 +7,12 @@ import {
   formatEther,
   parseEther,
   http,
+  getAddress,
+  verifyMessage
 } from 'viem';
+import { privateKeyToAccount, toAccount, signMessage, signTransaction, signTypedData } from 'viem/accounts';
+
+
 import * as chains from 'viem/chains';
 import * as tokenJson from './assets/MyToken.json';
 
@@ -18,7 +23,6 @@ const infuraApiKey = process.env.INFURA_API_KEY || ''; // NestJS config mode use
 
 // Injectable decorator to allow dependency injection
 @Injectable()
-// AppService class
 export class AppService {
   private rpcEndpointUrl: string;
   publicClient;
@@ -27,34 +31,48 @@ export class AppService {
   constructor(private configService: ConfigService) {
     this.setupPublicClient();
     this.setupWalletClient();
+  }
+
+  private setupPublicClient() {
     const network = this.configService.get<string>('INFURA_RPC_URL');
     const apiKey = this.configService.get<string>('INFURA_API_KEY');
     this.rpcEndpointUrl = `${network}${apiKey}`;
+    this.publicClient = createPublicClient({
+      chain: chains.sepolia,
+      transport: http(this.rpcEndpointUrl),
+    });
   }
 
   private setupWalletClient() {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
-    console.log('Private key:', privateKey);
-    if (!privateKey) {
-      throw new Error('Private key not found in configuration.');
-    }
-    // Ensure the privateKey has the '0x' prefix
-    /*if (!privateKey.startsWith('0x')) {
-    throw new Error('Invalid private key format. The private key must start with 0x.');
-  }
-  */
+    
+
+    const account = privateKeyToAccount(`0x${privateKey}`);
+    
+    // Create an account object
+
+    /*
+    const account = toAccount({
+      address: getAddress( privateKey as `0x${string}` ),
+
+      // sign message
+      async signMessage({ message }) {
+        return signMessage({ message, privateKey: privateKey as `0x${string}` })
+      },
+      // sign transaction
+      async signTransaction(transaction, { serializer }) {
+        return signTransaction({ privateKey: privateKey as `0x${string}`, transaction, serializer })
+      },
+      async signTypedData(typedData) {
+        return signTypedData({ ...typedData, privateKey: privateKey as `0x${string}` })
+      },
+
+    });*/
 
     this.walletClient = createWalletClient({
+      account,
       chain: chains.sepolia,
-      transport: http(),
-      key: privateKey, // Correctly pass the privateKey here.
-    });
-  }
-
-  private setupPublicClient() {
-    this.publicClient = createPublicClient({
-      chain: chains.sepolia,
-      transport: http(this.rpcEndpointUrl),
+      transport: http()
     });
   }
 
@@ -172,7 +190,8 @@ export class AppService {
       });
 
       // Wait for the transaction to be mined
-      const receipt = await this.walletClient.waitForTransactionReceipt({ hash: txResponse });
+      //const receipt = await this.walletClient.waitForTransactionReceipt({ hash: txResponse });
+      const receipt = await this.publicClient.waitForTransactionReceipt({ hash: txResponse });
       console.log(`Tokens minted successfully to address ${address}. Transaction Hash: ${receipt.transactionHash}`);
       return `Tokens minted successfully to address ${address}. Transaction Hash: ${receipt.transactionHash}`;
     } catch (error) {

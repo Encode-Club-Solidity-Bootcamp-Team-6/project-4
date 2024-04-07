@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { hexToString } from "viem";
 import { useAccount, useBalance, useContractRead, useContractWrite, useNetwork, useSignMessage } from "wagmi";
-import { Address, AddressInput, EtherInput, IntegerInput } from "~~/components/scaffold-eth";
+import { Address, AddressInput, EtherInput, InputBase, IntegerInput } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
   const [contractAddresses, setContractAddresses] = useState<ContractAddresses>({
