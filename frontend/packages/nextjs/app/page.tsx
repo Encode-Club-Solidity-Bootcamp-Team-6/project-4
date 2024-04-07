@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { hexToString } from "viem";
 import { useAccount, useBalance, useContractRead, useContractWrite, useNetwork, useSignMessage } from "wagmi";
-import { Address, AddressInput } from "~~/components/scaffold-eth";
+import { Address, AddressInput, IntegerInput } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
   const [contractAddresses, setContractAddresses] = useState<ContractAddresses>({
@@ -201,14 +201,14 @@ const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) 
 const InteractionSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) => {
   // add deploy MyToken
   // add deploy Ballot
-  // add delegate
   // add mint token
   // add vote
 
   return (
     <Card title="Interactions">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-10">
         <Delegate myTokenAddress={addresses.myToken} />
+        <Vote ballotAddress={addresses.ballot} />
       </div>
     </Card>
   );
@@ -235,6 +235,41 @@ const Delegate: React.FC<{ myTokenAddress: string }> = ({ myTokenAddress }) => {
       <AddressInput disabled={isLoading} onChange={setDelegatee} value={delegatee} placeholder="Delegatee Address" />
       <button disabled={isLoading} onClick={() => write()} className="btn w-48 self-center">
         Delegate
+      </button>
+      <span className="text-wrap">{statusMessage}</span>
+    </div>
+  );
+};
+
+const Vote: React.FC<{ ballotAddress: string }> = ({ ballotAddress }) => {
+  const [proposalIndex, setProposalIndex] = useState<string>("");
+
+  const { data, isError, error, isLoading, isSuccess, write } = useContractWrite({
+    address: ballotAddress as `0x${string}`,
+    abi: ballotAbi,
+    functionName: "vote",
+    args: [proposalIndex],
+  });
+
+  let statusMessage = "";
+  if (isLoading) statusMessage = "Loading...";
+  else if (isError) statusMessage = `Error: ${error?.message}`;
+  else if (isSuccess) statusMessage = `Success: ${JSON.stringify(data)}`;
+
+  return (
+    <div className="flex flex-col gap-2 items-stretch">
+      <span className="text-sm font-semibold">Vote for Proposal</span>
+      <IntegerInput
+        name="proposalIndexInput"
+        placeholder="Proposal Index"
+        value={proposalIndex}
+        onChange={newVal => setProposalIndex(newVal.toString())}
+        disabled={isLoading}
+        disableMultiplyBy1e18
+      />
+
+      <button disabled={isLoading} onClick={() => write()} className="btn w-48 self-center">
+        Vote
       </button>
       <span className="text-wrap">{statusMessage}</span>
     </div>
