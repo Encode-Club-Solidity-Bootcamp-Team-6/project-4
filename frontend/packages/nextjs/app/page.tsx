@@ -244,6 +244,7 @@ const InteractionSection: React.FC<{ addresses: ContractAddresses }> = ({ addres
   );
 };
 
+// Delegate Voting Power to yourself or another address
 const Delegate: React.FC<{ myTokenAddress: string }> = ({ myTokenAddress }) => {
   const [delegatee, setDelegatee] = useState<string>("");
 
@@ -271,40 +272,62 @@ const Delegate: React.FC<{ myTokenAddress: string }> = ({ myTokenAddress }) => {
   );
 };
 
+// React Functional Component for Voting in a Ballot
 const Vote: React.FC<{ ballotAddress: string }> = ({ ballotAddress }) => {
+  // State for storing the proposal index entered by the user
   const [proposalIndex, setProposalIndex] = useState<string>("");
+  // State for storing the amount of votes (or tokens) the user wishes to cast
+  const [amount, setAmount] = useState<string>("");
 
+  // Hook to write data to the blockchain, configured for voting
   const { data, isError, error, isLoading, isSuccess, write } = useContractWrite({
-    address: ballotAddress as `0x${string}`,
-    abi: ballotAbi,
-    functionName: "vote",
-    args: [proposalIndex],
+    address: ballotAddress as `0x${string}`,  // Blockchain address of the ballot contract
+    abi: ballotAbi,  // ABI (Application Binary Interface) of the ballot contract
+    functionName: "vote",  // Name of the function to be called
+    args: [proposalIndex, amount],  // Arguments passed to the smart contract function: proposal index and vote amount
   });
 
+  // Variable to store status messages based on the transaction state
   let statusMessage = "";
-  if (isLoading) statusMessage = "Loading...";
-  else if (isError) statusMessage = `Error: ${error?.message}`;
-  else if (isSuccess) statusMessage = `Success: ${JSON.stringify(data)}`;
+  if (isLoading) statusMessage = "Loading...";  // Display loading message during transaction processing
+  else if (isError) statusMessage = `Error: ${error?.message}`;  // Display error message if the transaction fails
+  else if (isSuccess) statusMessage = `Success: ${JSON.stringify(data)}`;  // Display success message and transaction data on success
 
   return (
     <div className="flex flex-col gap-2 items-stretch">
-      <span className="text-sm font-semibold">Vote for Proposal</span>
+      <span className="text-sm font-semibold">Proposal index</span>
+      {/* Input for the proposal index */}
       <IntegerInput
         name="proposalIndexInput"
         placeholder="Proposal Index"
         value={proposalIndex}
-        onChange={newVal => setProposalIndex(newVal.toString())}
-        disabled={isLoading}
-        disableMultiplyBy1e18
+        onChange={newVal => setProposalIndex(newVal.toString())}  // Update state when input changes
+        disabled={isLoading}  // Disable input while transaction is in process
+        disableMultiplyBy1e18  // Disable automatic multiplication by 10^18 (common in Ethereum for converting to Wei)
       />
-
-      <button disabled={isLoading} onClick={() => write()} className="btn w-48 self-center">
+      <span className="text-sm font-semibold">Amount of tokens to utilize for this vote</span>
+      {/* Input for the amount of votes */}
+      <IntegerInput
+        name="voteAmountInput"
+        placeholder="Vote Amount"
+        value={amount}
+        onChange={newVal => setAmount(newVal.toString())}  // Update state when input changes
+        disabled={isLoading}  // Disable input while transaction is in process
+        disableMultiplyBy1e18  // Disable automatic multiplication by 10^18
+      />
+      {/* Button to submit the vote */}
+      <button
+        disabled={isLoading || !proposalIndex || !amount}  // Disable button if inputs are empty or transaction is loading
+        onClick={() => write()}  // Call the write function to execute the smart contract function
+        className="btn w-48 self-center"
+      >
         Vote
       </button>
       <span className="text-wrap">{statusMessage}</span>
     </div>
   );
 };
+
 
 const Mint: React.FC = () => {
   const [recipient, setRecipient] = useState<string>("");

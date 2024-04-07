@@ -5,6 +5,7 @@ import {
   createPublicClient,
   createWalletClient,
   formatEther,
+  parseEther,
   http,
 } from 'viem';
 import * as chains from 'viem/chains';
@@ -33,6 +34,7 @@ export class AppService {
 
   private setupWalletClient() {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    console.log('Private key:', privateKey);
     if (!privateKey) {
       throw new Error('Private key not found in configuration.');
     }
@@ -153,9 +155,29 @@ export class AppService {
     return;
   }
 
-  // Empty mint tokens function
-  mintTokens(address: any) {
-    // ähnlich Castvote von project 2 (write contract funciton)
-    return `Minted tokens for address: ${address}`;
+  // Function to mint tokens
+  async mintTokens(address: string): Promise<string> {
+    // Define a fixed amount to mint, e.g., 100 tokens
+    const fixedAmount = "100"; // This could also be a configuration option
+    const tokenAmount = parseEther(fixedAmount); // Converting the amount to the appropriate format
+    const tokenContractAddress = this.configService.get<string>('TOKEN_ADDRESS');
+    const abi = tokenJson.abi;
+
+    try {
+      const txResponse = await this.walletClient.writeContract({
+        address: tokenContractAddress,
+        abi: abi,
+        functionName: 'mint',
+        args: [address, tokenAmount],
+      });
+
+      // Wait for the transaction to be mined
+      const receipt = await this.walletClient.waitForTransactionReceipt({ hash: txResponse });
+      console.log(`Tokens minted successfully to address ${address}. Transaction Hash: ${receipt.transactionHash}`);
+      return `Tokens minted successfully to address ${address}. Transaction Hash: ${receipt.transactionHash}`;
+    } catch (error) {
+      console.error('Failed to mint tokens:', error);
+      throw new Error('Failed to mint tokens');
+    }
   }
 }
