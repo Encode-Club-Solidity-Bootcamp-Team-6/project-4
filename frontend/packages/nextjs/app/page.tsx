@@ -92,6 +92,8 @@ const ContractAddresses: React.FC<{ value: ContractAddresses; onChange: (val: Co
   );
 };
 
+type Proposal = [`0x${string}`, bigint];
+
 const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) => {
   const { address } = useAccount();
 
@@ -128,6 +130,23 @@ const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) 
     abi: ballotAbi,
     functionName: "votePowerSpent",
     args: [address],
+  });
+
+  // read 3 propsals
+  const proposalFetches = [0, 1, 2].map(index =>
+    useContractRead({
+      address: addresses.ballot as `0x${string}`,
+      abi: ballotAbi,
+      functionName: "proposals",
+      args: [index],
+    }),
+  );
+
+  const proposals = proposalFetches.map((fetch, index) => {
+    const data = fetch.data as Proposal;
+    const proposalName = data ? hexToString(data[0], { size: 32 }) : "";
+    const voteCount = data ? data[1].toString() : "0";
+    return { index, proposalName, voteCount };
   });
 
   // read winning proposal
@@ -193,6 +212,19 @@ const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) 
         ) : (
           <span>Error fetching winning proposal</span>
         )}
+
+        {/* Display proposals */}
+
+        <div className="flex flex-col gap-2">
+          <span className="font-semibold">Proposals</span>
+          {proposals.map((proposal, index) => (
+            <div key={index} className="flex justify-between">
+              <span>{proposal.index}</span>
+              <span>{proposal.proposalName}</span>
+              <span>Votes: {proposal.voteCount}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </Card>
   );
