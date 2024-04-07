@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { hexToString } from "viem";
-import { useAccount, useBalance, useContractRead, useNetwork, useSignMessage } from "wagmi";
+import { useAccount, useBalance, useContractRead, useContractWrite, useNetwork, useSignMessage } from "wagmi";
 import { Address, AddressInput } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
@@ -32,7 +32,7 @@ const Home: NextPage = () => {
 
 const Card: React.FC<{ children: ReactNode; title: string }> = ({ children, title }) => {
   return (
-    <div className="card w-96 bg-primary text-primary-content mt-4">
+    <div className="card min-w-96 max-w-3xl bg-primary text-primary-content mt-4">
       <div className="card-body">
         <h2 className="card-title">{title}</h2>
         {children}
@@ -68,7 +68,7 @@ const ContractAddresses: React.FC<{ value: ContractAddresses; onChange: (val: Co
 }) => {
   return (
     <Card title="Contract Addresses">
-      <div className="form-control w-full max-w-xs ">
+      <div className="form-control w-full ">
         <label className="label">
           <span className="label-text">MyToken</span>
         </label>
@@ -205,7 +205,40 @@ const InteractionSection: React.FC<{ addresses: ContractAddresses }> = ({ addres
   // add mint token
   // add vote
 
-  return <Card title="Interaction">Soon you can interact here</Card>;
+  return (
+    <Card title="Interactions">
+      <div className="flex flex-col gap-2">
+        <Delegate myTokenAddress={addresses.myToken} />
+      </div>
+    </Card>
+  );
+};
+
+const Delegate: React.FC<{ myTokenAddress: string }> = ({ myTokenAddress }) => {
+  const [delegatee, setDelegatee] = useState<string>("");
+
+  const { data, isError, error, isLoading, isSuccess, write } = useContractWrite({
+    address: myTokenAddress as `0x${string}`,
+    abi: myTokenAbi,
+    functionName: "delegate",
+    args: [delegatee as `0x${string}`],
+  });
+
+  let statusMessage = "";
+  if (isLoading) statusMessage = "Loading...";
+  else if (isError) statusMessage = `Error: ${error?.message}`;
+  else if (isSuccess) statusMessage = `Success: ${JSON.stringify(data)}`;
+
+  return (
+    <div className="flex flex-col gap-2 items-stretch">
+      <span className="text-sm font-semibold">Delegate Voting Power</span>
+      <AddressInput disabled={isLoading} onChange={setDelegatee} value={delegatee} placeholder="Delegatee Address" />
+      <button disabled={isLoading} onClick={() => write()} className="btn w-48 self-center">
+        Delegate
+      </button>
+      <span className="text-wrap">{statusMessage}</span>
+    </div>
+  );
 };
 
 function WalletInfo() {
