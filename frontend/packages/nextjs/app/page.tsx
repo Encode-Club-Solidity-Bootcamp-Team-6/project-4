@@ -328,44 +328,58 @@ const Vote: React.FC<{ ballotAddress: string }> = ({ ballotAddress }) => {
   );
 };
 
-
+// Mint 50 tokens to a specified address
 const Mint: React.FC = () => {
+  // State hook for storing the recipient's Ethereum address
   const [recipient, setRecipient] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
+  // State hook for managing the loading state to provide UI feedback
   const [isLoading, setIsLoading] = useState(false);
+  // State hook for displaying status messages after API interactions
   const [statusMessage, setStatusMessage] = useState<string>("");
 
+  // Function to handle the minting operation
   const handleMint = async () => {
+    // Setting the loading state to true to indicate processing
     setIsLoading(true);
     try {
+      // Sending a POST request to the mint-tokens endpoint of the backend
       const res = await fetch("http://localhost:3001/mint-tokens", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", // Set content type header for JSON
         },
-        body: JSON.stringify({ recipient, amount }),
+        body: JSON.stringify({ address: recipient }), // Send the recipient address in the request body
       });
-      const data = await res.json();
-      setStatusMessage(JSON.stringify(data));
+      const data = await res.json(); // Parsing the JSON response from the server
+      setStatusMessage(JSON.stringify(data)); // Setting the status message with the response from the server
     } catch (e) {
-      setStatusMessage("Failed to mint");
+      setStatusMessage("Failed to mint"); // Handling errors by setting the status message to indicate failure
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Resetting the loading state regardless of the outcome
     }
   };
 
   return (
     <div className="flex flex-col gap-2 items-stretch">
       <span className="text-sm font-semibold">Mint Voting Tokens</span>
-      <AddressInput disabled={isLoading} onChange={setRecipient} value={recipient} placeholder="Mint Address" />
-      <EtherInput value={amount} onChange={amount => setAmount(amount)} placeholder="Amount" />
-      <button disabled={isLoading} onClick={handleMint} className="btn w-48 self-center">
+      <AddressInput
+        disabled={isLoading} // Disabling the input while loading to prevent multiple submissions
+        onChange={setRecipient} // Update the recipient address as the user types
+        value={recipient} // Displaying the current value of the recipient address
+        placeholder="Recipient Address" // Placeholder text for the input field
+      />
+      <button
+        disabled={isLoading || !recipient} // Disabling the button if loading or if the recipient address is not provided
+        onClick={handleMint} // Setting the click handler to the mint function
+        className="btn w-48 self-center"
+      >
         Mint
       </button>
       <span className="text-wrap">{statusMessage}</span>
     </div>
   );
 };
+
 
 function WalletInfo() {
   const { address, isConnecting, isDisconnected } = useAccount();

@@ -158,7 +158,7 @@ export class AppService {
   // Function to mint tokens
   async mintTokens(address: string): Promise<string> {
     // Define a fixed amount to mint, e.g., 100 tokens
-    const fixedAmount = "100"; // This could also be a configuration option
+    const fixedAmount = "50"; // This could also be a configuration option
     const tokenAmount = parseEther(fixedAmount); // Converting the amount to the appropriate format
     const tokenContractAddress = this.configService.get<string>('TOKEN_ADDRESS');
     const abi = tokenJson.abi;
