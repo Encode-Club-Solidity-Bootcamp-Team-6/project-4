@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { hexToString } from "viem";
 import { useAccount, useBalance, useContractRead, useContractWrite, useNetwork, useSignMessage } from "wagmi";
-import { Address, AddressInput, IntegerInput } from "~~/components/scaffold-eth";
+import { Address, AddressInput, EtherInput, IntegerInput } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
   const [contractAddresses, setContractAddresses] = useState<ContractAddresses>({
@@ -231,16 +231,14 @@ const InfoSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) 
 };
 
 const InteractionSection: React.FC<{ addresses: ContractAddresses }> = ({ addresses }) => {
-  // add deploy MyToken
-  // add deploy Ballot
   // add mint token
-  // add vote
 
   return (
     <Card title="Interactions">
       <div className="flex flex-col gap-10">
         <Delegate myTokenAddress={addresses.myToken} />
         <Vote ballotAddress={addresses.ballot} />
+        <Mint />
       </div>
     </Card>
   );
@@ -302,6 +300,44 @@ const Vote: React.FC<{ ballotAddress: string }> = ({ ballotAddress }) => {
 
       <button disabled={isLoading} onClick={() => write()} className="btn w-48 self-center">
         Vote
+      </button>
+      <span className="text-wrap">{statusMessage}</span>
+    </div>
+  );
+};
+
+const Mint: React.FC = () => {
+  const [recipient, setRecipient] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+
+  const handleMint = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("http://localhost:3001/mint-tokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ recipient, amount }),
+      });
+      const data = await res.json();
+      setStatusMessage(JSON.stringify(data));
+    } catch (e) {
+      setStatusMessage("Failed to mint");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 items-stretch">
+      <span className="text-sm font-semibold">Mint Voting Tokens</span>
+      <AddressInput disabled={isLoading} onChange={setRecipient} value={recipient} placeholder="Mint Address" />
+      <EtherInput value={amount} onChange={amount => setAmount(amount)} placeholder="Amount" />
+      <button disabled={isLoading} onClick={handleMint} className="btn w-48 self-center">
+        Mint
       </button>
       <span className="text-wrap">{statusMessage}</span>
     </div>
