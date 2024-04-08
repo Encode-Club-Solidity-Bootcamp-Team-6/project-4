@@ -36,7 +36,6 @@ function PageBody() {
       <p className="text-center text-lg">Here we are!</p>
       <WalletInfo></WalletInfo>
       <RandomWord></RandomWord>
-      
     </>
   );
 }
@@ -241,7 +240,6 @@ function ApiData(params: { address: `0x${string}` }) {
     </div>
   );
 }
-
 
 function TokenAddressFromApi() {
   const [data, setData] = useState<{ result: string }>();
